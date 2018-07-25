@@ -1,29 +1,22 @@
 from itertools import (
     starmap,
-    combinations
+    combinations_with_replacement,
+)
+from fractions import Fraction
+
+
+chromatic_cardinality = 12
+consonance_vector = (1,0,0,1,1,1,0,1,1,1,0,0)
+chromatic_set = set(
+    range(chromatic_cardinality)
 )
 
-from config import cardinality
 
-
-def pitch_class(pitch):
-    return pitch % cardinality
-
-def pitch_interval(pitch1, pitch2):
-    return pitch2 - pitch1
-
-def directed_pitch_interval_class(pitch1, pitch2):
-    return pitch_interval(pitch1, pitch2) % cardinality
-
-def undirected_pitch_interval_class(pitch1, pitch2):
-    return min(
-        directed_pitch_interval_class(pitch1, pitch2),
-        directed_pitch_interval_class(pitch2, pitch1)
-    )
+# Types
 
 def unordered_pitch_class_set(pitches):
     return set(
-        map(pitch_class, pitches)
+        p % chromatic_cardinality for p in pitches
     )
 
 def ordered_pitch_class_set(pitches):
@@ -31,17 +24,26 @@ def ordered_pitch_class_set(pitches):
         unordered_pitch_class_set(pitches)
     )
 
-def transposition(n, pitches):
+def directed_pitch_interval_class(pitch1, pitch2):
+    return (pitch2 - pitch1) % chromatic_cardinality
+
+
+# Unordered PCS transforms
+
+def inversion(pitches, n=chromatic_cardinality):
     return type(pitches)(
-        pitch_class(pitch + n) for pitch in pitches
+        n - p for p in pitches
     )
 
-def inversion(pitches):
+def transposition(pitches, n):
     return type(pitches)(
-        cardinality - pitch for pitch in pitches
+        p - n for p in pitches
     )
 
-def rotation(n, pitches):
+
+#  Ordered PCS transforms
+
+def rotation(pitches, n):
     return tuple(
         pitches[n:] + pitches[:n]
     )
@@ -51,46 +53,106 @@ def stepwise_intervals(pitches):
         directed_pitch_interval_class,
         zip(
             pitches,
-            rotation(1, pitches)
+            rotation(pcs, 1)
         )
     ))
 
-def degree_intervals(pitches):
-    return tuple(starmap(
-        directed_pitch_interval_class,
-        ((pitches[0], p) for p in pitches)
-    ))
+def scale_intervals(pitches):
+    return transposition(pitches, -pitches[0])
+
+
+
 
 def normal_order(pitches):
     pcs = ordered_pitch_class_set(pitches)
     ics = stepwise_intervals(pcs)
     candidates = [
-        rotation(i + 1, pcs)
+        rotation(pcs, i + 1)
         for i, x in enumerate(ics) if x == max(ics)
     ]
     return min(
         candidates,
-        key=degree_intervals
+        key=scale_intervals
     )
-
-def normal_form(pitches):
-    pitches = normal_order(pitches)
-    return degree_intervals(pitches)
 
 def prime_form(pitches):
-    nf1 = normal_form(pitches)
-    nf2 = normal_form(inversion(nf1))
-    return min(nf1, nf2, key=sum)
-
-def interval_vector(pitches):
-    ics = tuple(starmap(
-        undirected_pitch_interval_class,
-        combinations(pitches, 2)
-    ))
-    return tuple(
-        ics.count(i) for i in range(1, 1 + cardinality / 2)
+    nf1 = normal_order(pitches)
+    nf2 = normal_order(inversion(nf1))
+    return min(
+        nf1, nf2,
+        key=scale_intervals
     )
 
-def is_deep_scale(pitches):
-    iv = interval_vector(pitches)
-    return len(set(iv)) == len(iv) 
+
+
+
+
+def idiomatic_consonance(pitches):
+    pairs = tuple(combinations_with_replacement(pitches, 2))
+    return Fraction(
+        sum(
+            consonance_vector[
+                directed_pitch_interval_class(*pair)
+            ] for pair in pairs
+        ),
+        len(pairs)
+    )
+
+def idiomatically_consonant_pitch_classes(pitches, select_from=chromatic_set):
+    pcs = unordered_pitch_class_set(pitches)
+    return {
+        pitch for pitch in select_from
+        if idiomatic_consonance(
+            set.union(pcs, {pitch})
+        ) == 1
+    }
+
+def idiomatically_consonant_subsets(pitches):
+    graph = {
+        pitch: idiomatically_consonant_pitch_classes(
+            {pitch},
+            select_from=pitches
+        )
+        for pitch in pitches
+    }
+
+    consonant_sets = set()
+
+    def visit_node(node, visited):
+        visited.add(node)
+        consonant_sets.add(frozenset(visited))
+        consonant = idiomatically_consonant_pitch_classes(
+            visited,
+            select_from=set.union(
+                *(graph[leaf] for leaf in visited)
+            )
+        )
+        for next in consonant.difference(visited):
+            visit_node(next, visited.copy())
+
+    for start in graph:
+        visit_node(start, set())
+
+    return consonant_sets
+
+
+def general_chord_type(pitches):
+    
+    consonant_sets = idiomatically_consonant_subsets(pitches)    
+
+    max_length = len(
+        max(consonant_sets, key=len)
+    )
+
+    maximally_consonant_sets = set(
+        pcs for pcs in consonant_sets if len(pcs) == max_length
+    )
+
+    # TODO: extensions
+    return maximally_consonant_sets
+
+
+
+
+
+
