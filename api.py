@@ -37,7 +37,7 @@ def inversion(pitches, n=chromatic_cardinality):
 
 def transposition(pitches, n):
     return type(pitches)(
-        p - n for p in pitches
+        p + n for p in pitches
     )
 
 
@@ -53,12 +53,16 @@ def stepwise_intervals(pitches):
         directed_pitch_interval_class,
         zip(
             pitches,
-            rotation(pcs, 1)
+            rotation(pitches, 1)
         )
     ))
 
-def scale_intervals(pitches):
-    return transposition(pitches, -pitches[0])
+def scale_intervals(pitches, root=None):
+    if root is None:
+        root = pitches[0]
+    return ordered_pitch_class_set(
+        transposition(pitches, -root)
+    )
 
 
 
@@ -144,12 +148,25 @@ def general_chord_type(pitches):
         max(consonant_sets, key=len)
     )
 
-    maximally_consonant_sets = set(
-        pcs for pcs in consonant_sets if len(pcs) == max_length
+    base_sets = tuple(
+        normal_order(pcs) for pcs in consonant_sets if len(pcs) == max_length
     )
 
-    # TODO: extensions
-    return maximally_consonant_sets
+    extensions = tuple(
+        normal_order(set(pitches) - set(base_set)) for base_set in base_sets
+    )
+
+    gcts = zip(base_sets, extensions)
+
+    for i, gct in enumerate(gcts):
+        base, exts = gct
+        root = base[0]
+        base = scale_intervals(base, root)
+        exts = scale_intervals(exts, root)
+        gcts[i] = (root, base, exts)
+
+    return tuple(gcts)
+
 
 
 
