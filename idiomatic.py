@@ -1,11 +1,10 @@
-from itertools import (
-    combinations_with_replacement,
-)
+from itertools import combinations_with_replacement
 from fractions import Fraction
 
 from config import (
-    chromatic_cardinality,
     consonance_vector,
+    chromatic_cardinality,
+    chromatic_set,
 )
 from pitches import directed_pitch_interval_class
 from sets import (
@@ -14,7 +13,7 @@ from sets import (
 )
 
 
-def consonance(pitches):
+def internal_consonance(pitches):
     pairs = tuple(combinations_with_replacement(pitches, 2))
     return Fraction(
         sum(
@@ -25,23 +24,15 @@ def consonance(pitches):
         len(pairs)
     )
 
-def consonant_pitch_classes(pitches, select_from=None):
-    if select_from is None:
-        select_from = range(chromatic_cardinality)
-    pitches = set(pitches)
+def consonant_to(pitches, select_from=chromatic_set): 
     return {
         pitch for pitch in select_from
-        if consonance(
-            set.union(pitches, {pitch})
-        ) == 1
+        if internal_consonance({pitch, *pitches}) == 1
     }
 
 def consonant_subsets(pitches):
     graph = {
-        pitch: consonant_pitch_classes(
-            {pitch},
-            select_from=pitches
-        )
+        pitch: consonant_to({pitch}, pitches)
         for pitch in pitches
     }
 
@@ -50,20 +41,21 @@ def consonant_subsets(pitches):
     def visit_node(node, visited):
         visited.add(node)
         consonant_sets.add(frozenset(visited))
-        consonant = consonant_pitch_classes(
-            visited,
-            select_from=set.union(
-                *(graph[leaf] for leaf in visited)
-            )
+        connected = set.union(
+            *(graph[leaf] for leaf in visited)
         )
-        for next in consonant - visited:
+        consonant = consonant_to(
+            visited,
+            connected
+        )
+        candidates = consonant - visited
+        for next in candidates:
             visit_node(next, visited.copy())
 
     for start in graph:
         visit_node(start, set())
 
     return consonant_sets
-
 
 # TODO: probably make this a class so we can iterate over pitches
 def general_chord_type(pitches):
@@ -78,19 +70,15 @@ def general_chord_type(pitches):
         normal_order(pcs) for pcs in consonant_sets if len(pcs) == max_length
     )
 
-    extensions = tuple(
-        normal_order(set(pitches) - set(base_set)) for base_set in base_sets
-    )
+    gcts = []
 
-    gcts = list(
-        zip(base_sets, extensions)
-    )
-
-    for i, gct in enumerate(gcts):
-        base, exts = gct
+    for base in base_sets:
         root = base[0]
+        exts = normal_order(set(pitches) - set(base))
         base = relative_intervals(base, root)
         exts = relative_intervals(exts, root)
-        gcts[i] = (root, base, exts)
+        gcts.append(
+            (root, base, exts)
+        )
 
     return tuple(gcts)
