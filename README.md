@@ -3,6 +3,10 @@ Using diatonic set theory, as an extension to musical set theory, to classify mu
 
 ## Literature
 
+### Musical Set Theory
+- Pedagogy Publishing (2018) [Normal Order](http://openmusictheory.com/normalOrder.html)
+- Pedagogy Publishing (2018) [Set Class and Prime Form (1)](http://openmusictheory.com/setClassAndPrimeForm1.html)
+
 ### Diatonicism
 - John Clough (1991) [Maximally Even Sets](http://ehess.modelisationsavoirs.fr/atiam/biblio/Clough&DouthettJMT-1991.pdf)
 
