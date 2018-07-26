@@ -14,7 +14,7 @@ from sets import (
 )
 
 
-def idiomatic_consonance(pitches):
+def consonance(pitches):
     pairs = tuple(combinations_with_replacement(pitches, 2))
     return Fraction(
         sum(
@@ -25,20 +25,20 @@ def idiomatic_consonance(pitches):
         len(pairs)
     )
 
-def idiomatically_consonant_pitch_classes(pitches, select_from=None):
+def consonant_pitch_classes(pitches, select_from=None):
     if select_from is None:
         select_from = range(chromatic_cardinality)
     pitches = set(pitches)
     return {
         pitch for pitch in select_from
-        if idiomatic_consonance(
+        if consonance(
             set.union(pitches, {pitch})
         ) == 1
     }
 
-def idiomatically_consonant_subsets(pitches):
+def consonant_subsets(pitches):
     graph = {
-        pitch: idiomatically_consonant_pitch_classes(
+        pitch: consonant_pitch_classes(
             {pitch},
             select_from=pitches
         )
@@ -50,7 +50,7 @@ def idiomatically_consonant_subsets(pitches):
     def visit_node(node, visited):
         visited.add(node)
         consonant_sets.add(frozenset(visited))
-        consonant = idiomatically_consonant_pitch_classes(
+        consonant = consonant_pitch_classes(
             visited,
             select_from=set.union(
                 *(graph[leaf] for leaf in visited)
@@ -68,7 +68,7 @@ def idiomatically_consonant_subsets(pitches):
 # TODO: probably make this a class so we can iterate over pitches
 def general_chord_type(pitches):
     
-    consonant_sets = idiomatically_consonant_subsets(pitches)
+    consonant_sets = consonant_subsets(pitches)
 
     max_length = len(
         max(consonant_sets, key=len)
