@@ -1,86 +1,17 @@
 from itertools import (
-    tee,
-    starmap,
-    islice,
-    cycle,
-    chain,
     combinations_with_replacement,
 )
-from functools import partial
 from fractions import Fraction
 
-
-chromatic_cardinality = 12
-consonance_vector = (1,0,0,1,1,1,0,1,1,1,0,0)
-
-
-
-def directed_pitch_interval_class(pitch1, pitch2):
-    return (pitch2 - pitch1) % chromatic_cardinality
-
-def undirected_pitch_interval_class(pitch1, pitch2):
-    return min(
-        directed_pitch_interval_class(pitch1, pitch2),
-        directed_pitch_interval_class(pitch2, pitch1)
-    )
-
-
-def pitch_class(pitch):
-    return pitch % chromatic_cardinality
-
-def inverted(pitch, n=chromatic_cardinality):
-    return n - pitch
-
-def transposed(pitch, n):
-    return pitch + n
-
-
-def rotated(pitches, n):
-    return tuple(chain(
-        islice(pitches, n, None),
-        islice(pitches, n)
-    ))
-
-def stepwise_intervals(pitches):
-    a, b = tee(pitches)
-    b = islice(cycle(b), 1, None)
-    return tuple(starmap(
-        directed_pitch_interval_class,
-        zip(a, b)
-    ))
-
-def relative_intervals(pitches, root=None):
-    if root is None:
-        pitches, copy = tee(pitches)
-        root = next(copy)
-    return tuple(map(
-        partial(directed_pitch_interval_class, root),
-        pitches
-    ))
-
-
-def normal_order(pitches):
-    pcs = sorted(set(
-        map(pitch_class, pitches)
-    ))
-    ics = stepwise_intervals(pcs)
-    candidates = tuple(
-        rotated(pcs, n + 1)
-        for n, ic in enumerate(ics) if ic == max(ics)
-    )
-    return min(
-        candidates,
-        key=relative_intervals
-    )
-
-def prime_form(pitches):
-    nf1 = normal_order(pitches)
-    nf2 = normal_order(map(inverted, nf1))
-    return min(
-        nf1, nf2,
-        key=relative_intervals
-    )
-
+from config import (
+    chromatic_cardinality,
+    consonance_vector,
+)
+from pitches import directed_pitch_interval_class
+from sets import (
+    normal_order,
+    relative_intervals
+)
 
 
 def idiomatic_consonance(pitches):
@@ -125,7 +56,7 @@ def idiomatically_consonant_subsets(pitches):
                 *(graph[leaf] for leaf in visited)
             )
         )
-        for next in consonant.difference(visited):
+        for next in consonant - visited:
             visit_node(next, visited.copy())
 
     for start in graph:
@@ -134,6 +65,7 @@ def idiomatically_consonant_subsets(pitches):
     return consonant_sets
 
 
+# TODO: probably make this a class so we can iterate over pitches
 def general_chord_type(pitches):
     
     consonant_sets = idiomatically_consonant_subsets(pitches)
@@ -150,7 +82,7 @@ def general_chord_type(pitches):
         normal_order(set(pitches) - set(base_set)) for base_set in base_sets
     )
 
-    gcts = tuple(
+    gcts = list(
         zip(base_sets, extensions)
     )
 
