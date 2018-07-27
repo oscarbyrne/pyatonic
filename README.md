@@ -3,11 +3,11 @@ Using diatonic set theory, as an extension to musical set theory, to classify mu
 
 ## Literature
 
-### Background
-
-- [Fauconnier, G., & Turner, M. (2003). Conceptual blending, form and meaning. Recherches en communication, 19(19), 57-86.](http://sites.uclouvain.be/rec/index.php/rec/article/viewFile/5191/4921)
+### Diatonicism
 
 - [Krantz, R., Douthett, J., & Clough, J. (2000). Maximally even sets. In Bridges: Mathematical Connections in Art, Music, and Science (pp. 193-200). Bridges Conference.](https://www.researchgate.net/profile/Richard_Krantz/publication/235420612_Maximally_Even_Sets_A_Discovery_in_Mathemtical_Music_Theory_is_Found_to_Apply_in_Physics/links/591f64060f7e9b99793c5658/Maximally-Even-Sets-A-Discovery-in-Mathemtical-Music-Theory-is-Found-to-Apply-in-Physics.pdf)
+
+- [Amiot, E. (2007). David Lewin and maximally even sets. Journal of Mathematics and Music, 1(3), 157-172.](https://www.researchgate.net/profile/Emmanuel_Amiot2/publication/215646547_David_Lewin_and_maximally_even_sets/links/562a1d5908ae22b170316948.pdf)
 
 
 ### Classification
@@ -21,7 +21,9 @@ Using diatonic set theory, as an extension to musical set theory, to classify mu
 - [Cambouropoulos, E., Katsiavalos, A., & Tsougras, C. (2013). Idiom-independent harmonic pattern recognition based on a novel chord transition representation. In Proceedings of the 3rd International Workshop on Folk Music Analysis (FMA).](http://www.academia.edu/download/31583100/fma2013_proceedings.pdf#page=21)
 
 
-### Blending
+### Conceptual Blending
+
+- [Fauconnier, G., & Turner, M. (2003). Conceptual blending, form and meaning. Recherches en communication, 19(19), 57-86.](http://sites.uclouvain.be/rec/index.php/rec/article/viewFile/5191/4921)
 
 - [Kaliakatsos-Papakostas, M., Cambouropoulos, E., Kühnberger, K. U., Kutz, O., & Smaill, A. (2014, December). Concept invention and music: Creating novel harmonies via conceptual blending. In In Proceedings of the 9th Conference on Interdisciplinary Musicology (CIM2014), CIM2014.](https://www.researchgate.net/profile/Maximos_Kaliakatsos-Papakostas/publication/283070184_CONCEPT_INVENTION_AND_MUSIC_CREATING_NOVEL_HARMONIES_VIA_CONCEPTUAL_BLENDING/links/56287ede08aef25a243c734d/CONCEPT-INVENTION-AND-MUSIC-CREATING-NOVEL-HARMONIES-VIA-CONCEPTUAL-BLENDING.pdf)
 
