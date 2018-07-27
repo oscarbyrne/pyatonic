@@ -1,10 +1,16 @@
+from collections.abc import Sequence
 from itertools import combinations_with_replacement
 from fractions import Fraction
+from functools import partial
 
-from assumptions import consonance_vector
+from assumptions import (
+    consonance_vector,
+    chromatic_cardinality,
+)
 from notes import (
     directed_pitch_interval_class,
     chromatic_set,
+    transposed,
 )
 from sets import (
     normal_order,
@@ -12,8 +18,8 @@ from sets import (
 )
 
 
-def internal_consonance(pitches):
-    pairs = tuple(combinations_with_replacement(pitches, 2))
+def internal_consonance(notes):
+    pairs = tuple(combinations_with_replacement(notes, 2))
     return Fraction(
         sum(
             consonance_vector[
@@ -23,16 +29,16 @@ def internal_consonance(pitches):
         len(pairs)
     )
 
-def consonant_to(pitches, select_from=chromatic_set): 
+def consonant_to(notes, select_from=chromatic_set):
     return {
         pitch for pitch in select_from
-        if internal_consonance({pitch, *pitches}) == 1
+        if internal_consonance({pitch, *notes}) == 1
     }
 
-def consonant_subsets(pitches):
+def consonant_subsets(notes):
     graph = {
-        pitch: consonant_to({pitch}, pitches)
-        for pitch in pitches
+        pitch: consonant_to({pitch}, notes)
+        for pitch in notes
     }
 
     consonant_sets = set()
@@ -56,28 +62,64 @@ def consonant_subsets(pitches):
 
     return consonant_sets
 
-# TODO: probably make this a class so we can iterate over pitches
-def general_chord_type(pitches):
-    
-    consonant_sets = consonant_subsets(pitches)
 
-    max_length = len(
-        max(consonant_sets, key=len)
-    )
-    
-    base_sets = tuple(
-        normal_order(pcs) for pcs in consonant_sets if len(pcs) == max_length
-    )
+class Chord(Sequence):
 
-    gcts = []
+    @classmethod
+    def classify(cls, notes):
+        consonant_sets = consonant_subsets(notes)
 
-    for base in base_sets:
-        root = base[0]
-        exts = normal_order(set(pitches) - set(base))
-        base = relative_intervals(base, root)
-        exts = relative_intervals(exts, root)
-        gcts.append(
-            (root, base, exts)
+        max_length = len(
+            max(consonant_sets, key=len)
         )
 
-    return tuple(gcts)
+        base_sets = tuple(
+            normal_order(pcs) for pcs in consonant_sets if len(pcs) == max_length
+        )
+
+        gcts = []
+
+        for base in base_sets:
+            root = base[0]
+            exts = normal_order(set(notes) - set(base))
+            base = relative_intervals(base, root)
+            exts = relative_intervals(exts, root)
+            gcts.append(
+                cls(root, base, exts)
+            )
+
+        return tuple(gcts)
+
+    @classmethod
+    def classify_uniquely(cls, notes):
+        raise NotImplementedError
+
+    def __init__(self, root, base, extensions):
+        self.root = root
+        self.base = base
+        self.extensions = extensions
+
+    @property
+    def notes(self):
+        if self.extensions and self.extensions[0] < self.base[-1]:
+            exts_root = self.root + chromatic_cardinality
+        else:
+            exts_root = self.root
+        return (
+            *map(partial(transposed, n=self.root), self.base),
+            *map(partial(transposed, n=exts_root), self.extensions)
+        )
+
+    def __getitem__(self, i):
+        return self.notes[i]
+
+    def __len__(self):
+        return len(self.notes)
+
+    def __repr__(self):
+        return '{}({},{},{})'.format(
+            type(self).__name__,
+            self.root,
+            self.base,
+            self.extensions
+        )
