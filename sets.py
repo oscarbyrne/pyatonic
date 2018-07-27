@@ -14,32 +14,34 @@ from notes import (
 )
 
 
-def rotated(pitches, n):
+def rotated(notes, n):
     return tuple(chain(
-        islice(pitches, n, None),
-        islice(pitches, n)
+        islice(notes, n, None),
+        islice(notes, n)
     ))
 
-def stepwise_intervals(pitches):
-    a, b = tee(pitches)
+def stepwise_intervals(notes):
+    a, b = tee(notes)
     b = islice(cycle(b), 1, None)
     return tuple(starmap(
         directed_pitch_interval_class,
         zip(a, b)
     ))
 
-def relative_intervals(pitches, root=None):
+def relative_intervals(notes, root=None):
     if root is None:
-        pitches, copy = tee(pitches)
-        root = next(copy)
+        notes, copy = tee(notes)
+        root = next(copy, None)
     return tuple(map(
         partial(directed_pitch_interval_class, root),
-        pitches
+        notes
     ))
 
-def normal_order(pitches):
+def normal_order(notes):
+    if not notes:
+        return tuple()
     pcs = sorted(set(
-        map(pitch_class, pitches)
+        map(pitch_class, notes)
     ))
     ics = stepwise_intervals(pcs)
     candidates = tuple(
@@ -51,8 +53,10 @@ def normal_order(pitches):
         key=relative_intervals
     )
 
-def prime_form(pitches):
-    nf1 = normal_order(pitches)
+def prime_form(notes):
+    if not notes:
+        return tuple()
+    nf1 = normal_order(notes)
     nf2 = normal_order(map(inverted, nf1))
     return min(
         nf1, nf2,
