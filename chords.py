@@ -96,8 +96,8 @@ class Chord(Sequence):
 
     def __init__(self, root, base, extensions):
         self.root = root
-        self.base = base
-        self.extensions = extensions
+        self.base = tuple(base)
+        self.extensions = tuple(extensions)
 
     @property
     def notes(self):
