@@ -7,7 +7,7 @@ from itertools import (
 )
 from functools import partial
 
-from pitches import (
+from notes import (
     directed_pitch_interval_class,
     inverted,
     pitch_class,

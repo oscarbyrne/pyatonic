@@ -1,12 +1,11 @@
 from itertools import combinations_with_replacement
 from fractions import Fraction
 
-from config import (
-    consonance_vector,
-    chromatic_cardinality,
+from assumptions import consonance_vector
+from notes import (
+    directed_pitch_interval_class,
     chromatic_set,
 )
-from pitches import directed_pitch_interval_class
 from sets import (
     normal_order,
     relative_intervals
