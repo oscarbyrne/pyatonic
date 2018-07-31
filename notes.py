@@ -8,9 +8,3 @@ def directed_pitch_interval_class(note1, note2):
 
 def pitch_class(note):
     return note % chromatic_cardinality
-
-def inverted(note, n=chromatic_cardinality):
-    return n - note
-
-def transposed(note, n):
-    return note + n

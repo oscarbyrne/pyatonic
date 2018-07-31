@@ -1,5 +1,8 @@
 from collections.abc import Sequence
-from itertools import combinations_with_replacement
+from itertools import (
+    combinations_with_replacement,
+    chain,
+)
 from fractions import Fraction
 from functools import partial
 
@@ -10,11 +13,12 @@ from assumptions import (
 from notes import (
     directed_pitch_interval_class,
     chromatic_set,
-    transposed,
+    pitch_class,
 )
 from sets import (
     normal_order,
-    relative_intervals
+    relative_intervals,
+    transposed,
 )
 
 
@@ -67,6 +71,14 @@ class Chord(Sequence):
 
     @classmethod
     def classify(cls, notes):
+
+        notes = set(
+            map(
+                pitch_class,
+                notes
+            )
+        )
+        
         consonant_sets = consonant_subsets(notes)
 
         max_length = len(
@@ -92,7 +104,8 @@ class Chord(Sequence):
 
     @classmethod
     def classify_uniquely(cls, notes):
-        raise NotImplementedError
+        # TODO: full implementation
+        return cls.classify(notes)[0]
 
     def __init__(self, root, base, extensions):
         self.root = root
@@ -101,14 +114,13 @@ class Chord(Sequence):
 
     @property
     def notes(self):
-        if self.extensions and self.extensions[0] < self.base[-1]:
-            exts_root = self.root + chromatic_cardinality
-        else:
-            exts_root = self.root
-        return (
-            *map(partial(transposed, n=self.root), self.base),
-            *map(partial(transposed, n=exts_root), self.extensions)
-        )
+        return tuple(map(
+            pitch_class,
+            chain(
+                transposed(self.base, self.root),
+                transposed(self.extensions, self.root)
+            )
+        ))
 
     def __getitem__(self, i):
         return self.notes[i]
@@ -117,9 +129,11 @@ class Chord(Sequence):
         return len(self.notes)
 
     def __repr__(self):
-        return '{}({},{},{})'.format(
+        return '{}({})'.format(
             type(self).__name__,
-            self.root,
-            self.base,
-            self.extensions
+            ', '.join((
+                repr(self.root),
+                repr(self.base),
+                repr(self.extensions)
+            ))
         )

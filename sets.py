@@ -7,12 +7,18 @@ from itertools import (
 )
 from functools import partial
 
+from assumptions import chromatic_cardinality
 from notes import (
     directed_pitch_interval_class,
-    inverted,
     pitch_class,
 )
 
+
+def inverted(notes, n=chromatic_cardinality):
+    return (n - note for note in notes)
+
+def transposed(notes, n):
+    return (note + n for note in notes)
 
 def rotated(notes, n):
     return tuple(chain(
@@ -57,7 +63,7 @@ def prime_form(notes):
     if not notes:
         return tuple()
     nf1 = normal_order(notes)
-    nf2 = normal_order(map(inverted, nf1))
+    nf2 = normal_order(inverted(nf1))
     return min(
         nf1, nf2,
         key=relative_intervals
